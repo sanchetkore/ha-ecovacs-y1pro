@@ -43,6 +43,9 @@ from .const import (
     DOMAIN,
     InstanceMode,
 )
+from .y1_patch import apply_patch
+
+apply_patch()
 from .util import get_client_device_id
 
 _LOGGER = logging.getLogger(__name__)
