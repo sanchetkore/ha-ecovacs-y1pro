@@ -367,13 +367,29 @@ def apply_patch() -> None:
                 state = event_bus.get_last_event(StateEvent)
                 if isinstance(state, StateEvent) and state.state == State.PAUSED:
                     return await NativeResumeClean()._execute(authenticator, device_info, event_bus)
-                return await super()._execute(authenticator, device_info, event_bus)
+                result, response = await super()._execute(authenticator, device_info, event_bus)
+                if result.state == HandlingState.SUCCESS:
+                    event_bus.notify(StateEvent(State.CLEANING))
+                    result.requested_commands.append(GetNativeInfo())
+                return result, response
 
         class NativePauseClean(NativeExecuteCommand):
             NAME = "40009"
 
             def __init__(self) -> None:
                 super().__init__({"pauseSwitch": True})
+
+            async def _execute(
+                self,
+                authenticator: Any,
+                device_info: Any,
+                event_bus: Any,
+            ) -> tuple[HandlingResult, dict[str, Any]]:
+                result, response = await super()._execute(authenticator, device_info, event_bus)
+                if result.state == HandlingState.SUCCESS:
+                    event_bus.notify(StateEvent(State.PAUSED))
+                    result.requested_commands.append(GetNativeInfo())
+                return result, response
 
         class NativeResumeClean(NativeExecuteCommand):
             NAME = "40011"
@@ -390,13 +406,29 @@ def apply_patch() -> None:
                 state = event_bus.get_last_event(StateEvent)
                 if isinstance(state, StateEvent) and state.state != State.PAUSED:
                     return await NativeStartClean()._execute(authenticator, device_info, event_bus)
-                return await super()._execute(authenticator, device_info, event_bus)
+                result, response = await super()._execute(authenticator, device_info, event_bus)
+                if result.state == HandlingState.SUCCESS:
+                    event_bus.notify(StateEvent(State.CLEANING))
+                    result.requested_commands.append(GetNativeInfo())
+                return result, response
 
         class NativeReturnToDock(NativeExecuteCommand):
             NAME = "40013"
 
             def __init__(self) -> None:
                 super().__init__({"chargeSwitch": True})
+
+            async def _execute(
+                self,
+                authenticator: Any,
+                device_info: Any,
+                event_bus: Any,
+            ) -> tuple[HandlingResult, dict[str, Any]]:
+                result, response = await super()._execute(authenticator, device_info, event_bus)
+                if result.state == HandlingState.SUCCESS:
+                    event_bus.notify(StateEvent(State.RETURNING))
+                    result.requested_commands.append(GetNativeInfo())
+                return result, response
 
         class NativeLocate(NativeExecuteCommand):
             NAME = "40019"
@@ -536,7 +568,7 @@ def apply_patch() -> None:
         capabilities = Capabilities(
             device_type=DeviceType.VACUUM,
             availability=CapabilityEvent(
-                AvailabilityEvent, [GetNativeInfo(["battery"], is_available_check=True)]
+                AvailabilityEvent, [GetNativeInfo(is_available_check=True)]
             ),
             battery=CapabilityEvent(BatteryEvent, [GetNativeInfo(["battery"])]),
             charge=CapabilityExecute(NativeReturnToDock),

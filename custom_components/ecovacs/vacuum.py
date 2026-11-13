@@ -254,6 +254,12 @@ class EcovacsVacuum(
         """Set up the event listeners now that hass is ready."""
         await super().async_added_to_hass()
 
+        if last_state := self._device.events.get_last_event(StateEvent):
+            if isinstance(last_state, StateEvent):
+                self._attr_activity = _STATE_TO_VACUUM_STATE.get(last_state.state, VacuumActivity.DOCKED)
+        else:
+            self._attr_activity = VacuumActivity.DOCKED
+
         async def on_status(event: StateEvent) -> None:
             self._attr_activity = _STATE_TO_VACUUM_STATE[event.state]
             self.async_write_ha_state()
@@ -329,21 +335,29 @@ class EcovacsVacuum(
     async def async_return_to_base(self, **kwargs: Any) -> None:
         """Set the vacuum cleaner to return to the dock."""
         await self._device.execute_command(self._capability.charge.execute())
+        self._attr_activity = VacuumActivity.RETURNING
+        self.async_write_ha_state()
 
     @override
     async def async_stop(self, **kwargs: Any) -> None:
         """Stop the vacuum cleaner."""
         await self._clean_command(CleanAction.STOP)
+        self._attr_activity = VacuumActivity.RETURNING
+        self.async_write_ha_state()
 
     @override
     async def async_pause(self) -> None:
         """Pause the vacuum cleaner."""
         await self._clean_command(CleanAction.PAUSE)
+        self._attr_activity = VacuumActivity.PAUSED
+        self.async_write_ha_state()
 
     @override
     async def async_start(self) -> None:
         """Start the vacuum cleaner."""
         await self._clean_command(CleanAction.START)
+        self._attr_activity = VacuumActivity.CLEANING
+        self.async_write_ha_state()
 
     async def _clean_command(self, action: CleanAction) -> None:
         await self._device.execute_command(
