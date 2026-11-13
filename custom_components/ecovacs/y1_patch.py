@@ -380,11 +380,6 @@ def apply_patch() -> None:
                     [GetNativeInfo(["childLock"])],
                     NativeSetChildLock,
                 ),
-                do_not_disturb=CapabilitySetEnable(
-                    DoNotDisturbEvent,
-                    [GetNativeInfo(["disturbSwitch"])],
-                    NativeSetDoNotDisturb,
-                ),
                 volume=CapabilitySet(
                     VolumeEvent,
                     [GetNativeInfo(["volume"])],
