@@ -30,11 +30,11 @@ Custom component extending the official Home Assistant `ecovacs` integration wit
 
 ## Installation
 
-### Method 1: Via HACS (Recommended)
+### Method 1: Via HACS (Marketplace on latest HAOS) (Recommended)
 1. Open **HACS** in your Home Assistant.
 2. Click the three dots in the top right corner and select **Custom repositories**.
 3. Add this repository URL:
-   * **URL:** `https://github.com/<your-username>/ha-ecovacs-y1pro`
+   * **URL:** `https://github.com/sanchetkore/ha-ecovacs-y1pro`
    * **Category:** `Integration`
 4. Search for **Ecovacs (DEEBOT Y1 Pro Support)** and click **Download**.
 5. Restart Home Assistant.
